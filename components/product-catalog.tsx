@@ -1,175 +1,59 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
-import { ShoppingBag, Check, Truck } from "lucide-react"
+import { useCart } from "@/contexts/cart-context"
+import { products, type Product } from "@/lib/inventory"
+import { ShoppingBag, Check, Truck, Search, ChevronLeft, ChevronRight, Shield } from "lucide-react"
 
-interface Fragrance {
-  id: number
-  name: string
-  brand: string
-  description: string
-  price: number
-  size: string
-  category: string
-  stock: number
-  image: string
-}
+const ITEMS_PER_PAGE = 12
 
-const fragrances: Fragrance[] = [
-  {
-    id: 1,
-    name: "Amber Oud Gold",
-    brand: "Al Haramain",
-    description: "Notas opulentas de oud y ámbar dorado, una fragancia oriental que evoca los palacios del desierto.",
-    price: 37.25,
-    size: "4.0 oz",
-    category: "Oriental Amaderado",
-    stock: 1174,
-    image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 2,
-    name: "Club De Nuit Milestone",
-    brand: "Armaf",
-    description: "Elegancia masculina con notas frescas y amaderadas, inspirado en los clásicos de la alta perfumería.",
-    price: 38.00,
-    size: "6.8 oz",
-    category: "Fresco Amaderado",
-    stock: 655,
-    image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 3,
-    name: "Asad Elixir",
-    brand: "Lattafa",
-    description: "Poderosa composición de especias y oud, el rugido del león capturado en un frasco.",
-    price: 31.00,
-    size: "3.4 oz",
-    category: "Especiado Oriental",
-    stock: 516,
-    image: "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 4,
-    name: "9 AM",
-    brand: "Afnan",
-    description: "Frescura matutina con toques dulces y amaderados, el despertar perfecto para el hombre moderno.",
-    price: 23.25,
-    size: "3.4 oz",
-    category: "Fresco Aromático",
-    stock: 349,
-    image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 5,
-    name: "Bharara King",
-    brand: "Bharara",
-    description: "Majestuosidad real en cada nota, oud y especias orientales para quien lleva corona invisible.",
-    price: 42.25,
-    size: "3.4 oz",
-    category: "Oriental Real",
-    stock: 417,
-    image: "https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 6,
-    name: "Ariana Cloud",
-    brand: "Ariana Grande",
-    description: "Nubes de lavanda, coco y vainilla cremosa, un sueño dulce hecho fragancia.",
-    price: 43.75,
-    size: "3.4 oz",
-    category: "Dulce Floral",
-    stock: 209,
-    image: "https://images.unsplash.com/photo-1547887538-047f814bfb64?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 7,
-    name: "360 Red",
-    brand: "Perry Ellis",
-    description: "Energía vibrante con notas cítricas y especiadas, para el hombre que vive sin límites.",
-    price: 20.75,
-    size: "3.4 oz",
-    category: "Cítrico Especiado",
-    stock: 215,
-    image: "https://images.unsplash.com/photo-1590736704728-f4730bb30770?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 8,
-    name: "Club De Nuit Intense",
-    brand: "Armaf",
-    description: "Intensidad legendaria con limón, grosella negra y notas de cuero sofisticado.",
-    price: 25.00,
-    size: "3.6 oz",
-    category: "Amaderado Cítrico",
-    stock: 294,
-    image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 9,
-    name: "Amber Oud Ruby Edition",
-    brand: "Al Haramain",
-    description: "Rubí líquido con oud precioso y ámbar cálido, joya olfativa del Medio Oriente.",
-    price: 40.75,
-    size: "3.4 oz",
-    category: "Oriental Lujoso",
-    stock: 110,
-    image: "https://images.unsplash.com/photo-1619994403073-2cec844b8e63?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 10,
-    name: "Art Of Universe",
-    brand: "Lattafa",
-    description: "Viaje cósmico de notas amaderadas y especiadas, el infinito capturado en cristal.",
-    price: 34.75,
-    size: "3.4 oz",
-    category: "Amaderado Especiado",
-    stock: 872,
-    image: "https://images.unsplash.com/photo-1608528577891-eb055944f2e7?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 11,
-    name: "212 VIP Black",
-    brand: "Carolina Herrera",
-    description: "Sofisticación nocturna con lavanda oscura, caviar negro y notas de cuero exclusivo.",
-    price: 55.50,
-    size: "3.4 oz",
-    category: "Aromático Especiado",
-    stock: 18,
-    image: "https://images.unsplash.com/photo-1557170334-a9632e77c6e4?w=600&h=800&fit=crop&q=80"
-  },
-  {
-    id: 12,
-    name: "Bad Boy Cobalt",
-    brand: "Carolina Herrera",
-    description: "Rebeldía electrizante con salvia, cedro y notas acuáticas que despiertan los sentidos.",
-    price: 64.00,
-    size: "3.4 oz",
-    category: "Aromático Acuático",
-    stock: 32,
-    image: "https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&h=800&fit=crop&q=80"
-  }
-]
+type GenderFilter = 'all' | 'M' | 'W' | 'U'
 
 export function ProductCatalog() {
-  const { toast } = useToast()
-  const [addedItems, setAddedItems] = useState<Set<number>>(new Set())
+  const { addItem } = useCart()
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState("")
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('all')
+  const [currentPage, setCurrentPage] = useState(1)
 
-  const handleAddToCart = (fragrance: Fragrance) => {
-    setAddedItems(prev => new Set(prev).add(fragrance.id))
-    
-    toast({
-      title: "Añadido al Carrito",
-      description: `${fragrance.name} ha sido añadido a tu selección.`,
+  // Filter products based on search and gender
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesGender = genderFilter === 'all' || product.gender === genderFilter
+      const inStock = product.stock > 0
+      return matchesSearch && matchesGender && inStock
     })
+  }, [searchQuery, genderFilter])
 
-    // Reset the button after 2 seconds
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE)
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
+
+  // Reset to page 1 when filters change
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    setCurrentPage(1)
+  }
+
+  const handleGenderFilter = (gender: GenderFilter) => {
+    setGenderFilter(gender)
+    setCurrentPage(1)
+  }
+
+  const handleAddToCart = (product: Product) => {
+    addItem(product)
+    setAddedItems(prev => new Set(prev).add(product.id))
+
     setTimeout(() => {
       setAddedItems(prev => {
         const newSet = new Set(prev)
-        newSet.delete(fragrance.id)
+        newSet.delete(product.id)
         return newSet
       })
     }, 2000)
@@ -184,90 +68,134 @@ export function ProductCatalog() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
           <p className="text-accent tracking-[0.3em] uppercase text-sm mb-4">
-            Colección Exclusiva
+            Colección Completa
           </p>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-foreground tracking-tight text-balance">
-            Nuestras <span className="italic">Fragancias</span>
+            Catálogo de <span className="italic">Fragancias</span>
           </h2>
           <p className="mt-6 text-muted-foreground max-w-2xl mx-auto text-lg font-light">
-            Cada composición es una obra maestra olfativa, creada para quienes buscan expresar su esencia única
+            Más de {products.length} fragancias originales disponibles con envío local rápido
           </p>
         </motion.div>
 
+        {/* Search and Filters */}
+        <div className="mb-10 space-y-6">
+          {/* Search Bar */}
+          <div className="relative max-w-xl mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar fragancias..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
+            />
+          </div>
+
+          {/* Gender Filter */}
+          <div className="flex justify-center gap-2">
+            {[
+              { value: 'all', label: 'Todos' },
+              { value: 'M', label: 'Hombre' },
+              { value: 'W', label: 'Mujer' },
+              { value: 'U', label: 'Unisex' },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => handleGenderFilter(value as GenderFilter)}
+                className={`px-6 py-2 text-sm tracking-wide transition-all rounded-sm ${
+                  genderFilter === value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Results Count */}
+          <p className="text-center text-muted-foreground text-sm">
+            {filteredProducts.length} fragancias encontradas
+          </p>
+        </div>
+
         {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {fragrances.map((fragrance, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {paginatedProducts.map((product, index) => (
             <motion.article
-              key={fragrance.id}
+              key={product.id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group bg-card border border-border rounded-sm overflow-hidden hover:shadow-xl transition-all duration-500"
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+              className="group bg-card border border-border rounded-sm overflow-hidden hover:shadow-lg hover:border-accent/30 transition-all duration-300"
             >
-              {/* Product Image */}
-              <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-                <img
-                  src={fragrance.image}
-                  alt={fragrance.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                {/* Category Badge */}
-                <div className="absolute top-4 left-4">
-                  <span className="bg-primary/90 text-primary-foreground px-3 py-1 text-xs tracking-wider uppercase">
-                    {fragrance.category}
+              {/* Text-based luxury card */}
+              <div className="p-6 space-y-4">
+                {/* Badge Row */}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs tracking-wider uppercase ${
+                    product.gender === 'M' ? 'text-blue-600' : 
+                    product.gender === 'W' ? 'text-pink-600' : 'text-accent'
+                  }`}>
+                    {product.gender === 'M' ? 'Hombre' : product.gender === 'W' ? 'Mujer' : 'Unisex'}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs text-green-600">
+                    <Shield className="w-3 h-3" />
+                    100% Original
                   </span>
                 </div>
-              </div>
 
-              {/* Product Info */}
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
-                    {fragrance.brand}
-                  </p>
-                  <span className="text-xs text-muted-foreground">{fragrance.size}</span>
-                </div>
-                <h3 className="text-xl font-medium text-foreground mb-3">
-                  {fragrance.name}
+                {/* Product Name */}
+                <h3 className="text-lg font-medium text-foreground leading-tight line-clamp-2 min-h-[3.5rem]">
+                  {product.name}
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-2">
-                  {fragrance.description}
-                </p>
+
+                {/* Size */}
+                {product.size && (
+                  <p className="text-sm text-muted-foreground">
+                    {product.size}
+                  </p>
+                )}
 
                 {/* Price and Stock */}
-                <div className="flex items-baseline justify-between mb-2">
-                  <div className="flex items-baseline gap-2">
+                <div className="flex items-baseline justify-between">
+                  <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-light text-foreground">
-                      ${fragrance.price.toFixed(2)}
+                      ${product.price.toFixed(2)}
                     </span>
-                    <span className="text-sm text-muted-foreground">USD</span>
                   </div>
-                  <span className={`text-xs ${fragrance.stock > 50 ? 'text-green-600' : fragrance.stock > 10 ? 'text-amber-600' : 'text-red-500'}`}>
-                    {fragrance.stock > 50 ? 'En Stock' : fragrance.stock > 10 ? `${fragrance.stock} disponibles` : fragrance.stock > 0 ? 'Últimas unidades' : 'Agotado'}
+                  <span className={`text-xs ${
+                    product.stock > 50 ? 'text-green-600' : 
+                    product.stock > 10 ? 'text-amber-600' : 'text-red-500'
+                  }`}>
+                    {product.stock > 50 ? 'En Stock' : 
+                     product.stock > 10 ? `${product.stock} disponibles` : 
+                     'Últimas unidades'}
                   </span>
                 </div>
 
                 {/* Local Shipping Badge */}
-                <div className="flex items-center gap-2 text-accent mb-5">
+                <div className="flex items-center gap-2 text-accent">
                   <Truck className="w-4 h-4" />
                   <span className="text-xs tracking-wide">Envío Local Rápido (PR)</span>
                 </div>
 
                 {/* Add to Cart Button */}
                 <Button
-                  onClick={() => handleAddToCart(fragrance)}
-                  disabled={addedItems.has(fragrance.id)}
+                  onClick={() => handleAddToCart(product)}
+                  disabled={addedItems.has(product.id)}
                   className={`w-full transition-all duration-300 ${
-                    addedItems.has(fragrance.id)
-                      ? "bg-green-600 hover:bg-green-600 text-primary-foreground"
+                    addedItems.has(product.id)
+                      ? "bg-green-600 hover:bg-green-600 text-white"
                       : "bg-primary text-primary-foreground hover:bg-primary/90"
                   }`}
                 >
-                  {addedItems.has(fragrance.id) ? (
+                  {addedItems.has(product.id) ? (
                     <>
                       <Check className="w-4 h-4 mr-2" />
                       Añadido
@@ -283,6 +211,65 @@ export function ProductCatalog() {
             </motion.article>
           ))}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Anterior
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-10 h-10 rounded-sm text-sm transition-all ${
+                      currentPage === pageNum
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-2"
+            >
+              Siguiente
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Page Info */}
+        <p className="text-center text-muted-foreground text-sm mt-4">
+          Página {currentPage} de {totalPages}
+        </p>
       </div>
     </section>
   )

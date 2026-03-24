@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, ShoppingBag, Search, User } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useCart } from "@/contexts/cart-context"
 
 const navLinks = [
   { name: "Colección", href: "#coleccion" },
@@ -14,6 +15,7 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { openCart, totalItems } = useCart()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,15 +79,18 @@ export function Header() {
                 <User className="w-5 h-5" />
               </button>
               <button 
+                onClick={openCart}
                 className={`p-2 transition-colors hover:text-gold relative ${
                   isScrolled ? "text-foreground" : "text-cream"
                 }`}
                 aria-label="Carrito"
               >
                 <ShoppingBag className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold text-primary text-xs flex items-center justify-center rounded-full">
-                  0
-                </span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-accent-foreground text-xs font-medium flex items-center justify-center rounded-full">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
               </button>
 
               {/* Mobile menu toggle */}

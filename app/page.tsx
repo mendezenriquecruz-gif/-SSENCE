@@ -1,5 +1,6 @@
 import { Header } from "@/components/header"
 import { Hero } from "@/components/hero"
+import { TopSellers } from "@/components/top-sellers"
 import { ProductCatalog } from "@/components/product-catalog"
 import { OlfactoryQuiz } from "@/components/olfactory-quiz"
 import { FeaturedFragrances } from "@/components/featured-fragrances"
@@ -14,6 +15,7 @@ export default function Home() {
     <main className="min-h-screen">
       <Header />
       <Hero />
+      <TopSellers />
       <ProductCatalog />
       <OlfactoryQuiz />
       <FeaturedFragrances />
