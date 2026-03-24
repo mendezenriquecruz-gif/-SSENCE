@@ -78,9 +78,15 @@ export function Hero() {
         >
           <Button 
             size="lg" 
+            onClick={() => {
+              document.getElementById('catalogo')?.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+              })
+            }}
             className="bg-gold text-primary hover:bg-gold/90 px-10 py-6 text-base tracking-widest uppercase font-medium transition-all duration-300 hover:scale-105"
           >
-            Descubre tu Aroma
+            Ver Catálogo
           </Button>
         </motion.div>
       </div>
